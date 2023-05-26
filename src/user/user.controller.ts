@@ -31,10 +31,18 @@ export default class UserController {
 
   @ApiTags('API')
   @ApiResponse({ status: 201, type: ReturnUserDto })
-  @UseGuards(JwtAuthGuard)
   @Post('create')
   async create(@Body() data: CreateUserDto): Promise<User> {
     return await this.userService.create(data)
+  }
+
+  @ApiTags('API')
+  @ApiResponse({ status: 201, type: 'success' })
+  @Post('create-password')
+  async createPassword(@Body() data: { password: string, token: string }): Promise<string> {
+    await this.userService.createPassword(data.password, data.token)
+
+    return 'success'
   }
 
   @ApiTags('API')
