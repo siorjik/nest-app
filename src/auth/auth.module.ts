@@ -3,9 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 
 import AuthController from './auth.controller'
 import AuthService from './auth.service'
-import User from 'src/user/user.entity'
-import { TokenModule } from 'src/token/token.module'
 import JwtStrategy from './auth.strategy'
+import User from '../user/user.entity'
+import TokenModule from '../token/token.module'
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), TokenModule],

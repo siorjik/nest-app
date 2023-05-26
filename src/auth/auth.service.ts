@@ -5,16 +5,16 @@ import * as bcrypt from 'bcrypt'
 
 import User from '../user/user.entity'
 import LoginDto from './dto/login.dto'
-import { TokenService } from '../token/token.service'
+import TokenService from '../token/token.service'
 
 @Injectable()
 export default class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly tokenService: TokenService
-  ) {}
+  ) { }
 
-  async login (data: LoginDto): Promise<{ user: User & { token: string }, refresh: string } | boolean> {
+  async login(data: LoginDto): Promise<{ user: User & { token: string }, refresh: string } | boolean> {
     const user = await this.userRepository.findOneBy({ email: data.email })
 
     if (user && user.password) {
@@ -34,8 +34,8 @@ export default class AuthService {
     } else return false
   }
 
-  async refresh (token: string): Promise<{ accessToken: string, refreshToken: string }> {
-    return this.tokenService.verifyToken(token)
+  async refresh(token: string): Promise<{ accessToken: string, refreshToken: string }> {
+    return this.tokenService.verifyRefresh(token)
   }
 
   async logout(token: string) {
