@@ -47,11 +47,11 @@ export default class UserService {
         to: data.email,
         subject: 'Finish your registration.',
         html: `
+          <p>Hello ${data.firstName}, you need to create password for your account.</p>
           <a href='${process.env.CLIENT_URL}/password-creating?accessToken=${tokens.accessToken}'>
             Link for password creating...
           </a>
-
-          <p>This link will be expired in 30 minutes</p>
+          <p>This link will be expired in 30 minutes.</p>
         `
       })
 

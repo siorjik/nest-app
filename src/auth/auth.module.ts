@@ -6,9 +6,10 @@ import AuthService from './auth.service'
 import JwtStrategy from './auth.strategy'
 import User from '../user/user.entity'
 import TokenModule from '../token/token.module'
+import LoggerModule from '../logger/logger.module'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), TokenModule],
+  imports: [TypeOrmModule.forFeature([User]), TokenModule, LoggerModule],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy]
 })
