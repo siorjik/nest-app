@@ -18,7 +18,7 @@ export default class AuthService {
     private readonly loggerService: LoggerService
   ) { }
 
-  async login(data: LoginDto): Promise<{ user: User & { token: string }, refresh: string } | boolean> {
+  async login(data: LoginDto): Promise<User | boolean> {
     const user = await this.userRepository.findOneBy({ email: data.email })
     
     if (user && user.password) {
@@ -31,10 +31,7 @@ export default class AuthService {
 
         this.loggerService.log(`login with: ${data.email}`, this.context)
 
-        return {
-          user: { ...user, token: tokens.accessToken },
-          refresh: tokens.refreshToken,
-        }
+        return { ...user, ...tokens }
       }
       else {
         this.loggerService.error('invalid password', this.context)

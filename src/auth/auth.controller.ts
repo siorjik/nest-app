@@ -5,7 +5,6 @@ import { Request, Response } from 'express'
 import AuthService from './auth.service'
 import LoginDto from './dto/login.dto'
 import ReturnUserDto from '../user/dto/returnUser.dto'
-import { deleteCookie, parseCookie, setCookie } from './helpers/auth.cookieHelper'
 import User from 'src/user/user.entity'
 import { JwtAuthGuard } from './auth.guard'
 import getCustomErr from 'src/helpers/getCustomErr'
@@ -19,37 +18,26 @@ export default class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() data: LoginDto, @Res() res: Response): Promise<void> {
-    const result = await this.authService.login(data) as { refresh: string, user: User }
+    const result = await this.authService.login(data) as User & { tokens: { refreshToken: string, accessToken: string } }
 
-    if (result) {
-      setCookie(res, result.refresh)
-
-      res.send(result.user)
-    } else res.send(getCustomErr({ message: 'Invalid credentials...' }))
+    if (result) res.send(result)
+    else res.send(getCustomErr({ message: 'Invalid credentials...' }))
   }
 
   @ApiTags('API')
   @ApiResponse({ status: 200 })
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const cookie = req.headers['set-cookie'] || req.cookies.refresh
+    const token = req.query.refresh
 
-    if (cookie) {
-      const token = Array.isArray(cookie) ? parseCookie(cookie, 'refresh') : cookie
+    if (token) {
+      try {
+        const tokens = await this.authService.refresh(token as string)
 
-      if (token) {
-        try {
-          const tokens = await this.authService.refresh(token)
-
-          setCookie(res, tokens.refreshToken)
-
-          res.send(tokens)
-        } catch (error) {
-          deleteCookie(res)
-
-          res.status(401).send(error.response)
-        }
-      } else res.status(401).send(getCustomErr({ message: 'Refresh token from cookie does not exist...' }))
+        res.send(tokens)
+      } catch (error) {
+        res.status(401).send(error.response)
+      }
     } else res.status(401).send(getCustomErr({ message: 'Session does not exist or expired...' }))
   }
 
@@ -57,24 +45,18 @@ export default class AuthController {
   @ApiResponse({ status: 200 })
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
+  @Get('logout')
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const cookie = req.headers['set-cookie'] || req.cookies.refresh
+    const token = req.query.refresh
 
-    if (cookie) {
-      const token = Array.isArray(cookie) ? parseCookie(cookie, 'refresh') : cookie
+    if (token) {
+      try {
+        await this.authService.logout(token as string)
 
-      if (token) {
-        try {
-          deleteCookie(res)
-
-          await this.authService.logout(token)
-
-          res.send('ok')
-        } catch (error) {
-          res.status(401).send(error.response)
-        }
-      } else res.status(401).send(getCustomErr({ message: 'Refresh token from cookie does not exist...' }))
-    } else res.status(401).send(getCustomErr({ message: 'Session does not exist or expired...' }))
+        res.send('ok')
+      } catch (error) {
+        res.status(401).send(error.response)
+      }
+    } else res.status(401).send(getCustomErr({ message: 'Refresh token does not exist...' }))
   }
 }
