@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
-import { DeleteResult } from 'typeorm'
+import { DeleteResult, UpdateResult } from 'typeorm'
 
 import UserService from './user.service'
 import CreateUserDto from './dto/createUser.dto'
@@ -39,10 +39,15 @@ export default class UserController {
   @ApiTags('API')
   @ApiResponse({ status: 201, type: 'success' })
   @Post('create-password')
-  async createPassword(@Body() data: { password: string, token: string }): Promise<string> {
-    await this.userService.createPassword(data.password, data.token)
+  async createPassword(@Body() data: { password: string, token: string }): Promise<UpdateResult> {
+    return await this.userService.createPassword(data.password, data.token)
+  }
 
-    return 'success'
+  @ApiTags('API')
+  @ApiResponse({ status: 201, type: 'success' })
+  @Post('recover-password')
+  async recoverPassword(@Body() data: { email: string, password?: string, token?: string }): Promise<UpdateResult | string> {
+    return await this.userService.recoverPassword(data.email, data.password, data.token)
   }
 
   @ApiTags('API')
