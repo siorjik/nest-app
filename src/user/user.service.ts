@@ -45,11 +45,11 @@ export default class UserService {
 
       await this.mailerService.sendMail({
         to: data.email,
-        subject: 'Finish your registration.',
+        subject: 'Registration finishing.',
         html: `
           <p>Hello ${data.firstName}, you need to create password for your account.</p>
           <a href='${process.env.CLIENT_URL}/password-creating?accessToken=${tokens.accessToken}'>
-            Link for password creating...
+            Link for password creating
           </a>
           <p>This link will be expired in 30 minutes.</p>
         `
@@ -67,8 +67,34 @@ export default class UserService {
 
       return await this.userRepository.update({ id: verified.user.id }, { password: hash, isActive: true })
     } catch (err) {
-      throw new BadRequestException('Sorry, this link was expired, please create new account...')
+      throw new BadRequestException('Sorry, this link was expired, or account does not exist...')
     }
+  }
+
+  async recoverPassword(email: string, password?: string, token?: string) {
+    if (email && !password && !token) {
+      try {
+        const user = await this.userRepository.findOneBy({ email })
+
+        const tokens = await this.tokenService.generateTokens({ id: user.id, email }, false)
+
+        await this.mailerService.sendMail({
+          to: email,
+          subject: 'Password recovery.',
+          html: `
+            <p>Hello ${user.firstName}, change password for your account.</p>
+            <a href='${process.env.CLIENT_URL}/password-recovery?accessToken=${tokens.accessToken}&email=${email}'>
+              Link for password recovery
+            </a>
+            <p>This link will be expired in 30 minutes.</p>
+          `
+        })
+
+        return 'mail for password recovery was sending...'
+      } catch (error) {
+        throw new BadRequestException('Sorry, something wrong with email sending for password recovery or account does not exist...')
+      }
+    } else if (email && password && token) return this.createPassword(password, token)
   }
 
   async update(id: number, data: UpdateUserDto): Promise<UpdateResult> {
