@@ -21,7 +21,7 @@ export default class AuthController {
     const result = await this.authService.login(data) as User & { tokens: { refreshToken: string, accessToken: string } }
 
     if (result) res.send(result)
-    else res.send(getCustomErr({ message: 'Invalid credentials...' }))
+    else res.status(401).send('Invalid credentials...')
   }
 
   @ApiTags('API')

@@ -67,7 +67,7 @@ export default class UserService {
 
       return await this.userRepository.update({ id: verified.user.id }, { password: hash, isActive: true })
     } catch (err) {
-      throw new BadRequestException('Sorry, this link was expired, or account does not exist...')
+      throw new BadRequestException('Sorry, this link was expired...')
     }
   }
 
@@ -90,9 +90,9 @@ export default class UserService {
           `
         })
 
-        return 'mail for password recovery was sending...'
+        return 'success'
       } catch (error) {
-        throw new BadRequestException('Sorry, something wrong with email sending for password recovery or account does not exist...')
+        throw new BadRequestException('Sorry, account with this email does not exist...')
       }
     } else if (email && password && token) return this.createPassword(password, token)
   }
