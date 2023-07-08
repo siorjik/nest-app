@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm'
 
 import User from '../user/user.entity'
 
@@ -12,6 +12,12 @@ export default class Token {
 
   @Column()
   userId: number
+
+  @CreateDateColumn({ type: 'timestamptz', default: () => "NOW()" })
+  createdAt: Date
+
+  @UpdateDateColumn({ type: 'timestamptz', default: () => "NOW()" })
+  updatedAt: Date
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User
