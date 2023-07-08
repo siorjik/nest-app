@@ -19,4 +19,10 @@ export default class User {
 
   @Column({ default: null })
   password: string
+
+  @Column({ type: 'timestamptz', default: () => "NOW()" })
+  createdAt: Date
+
+  @Column({ type: 'timestamptz', default: () => "NOW()" })
+  updatedAt: Date
 }

@@ -13,4 +13,8 @@ export default class LoggerService {
   error(data: DataType, context: string) {
     this.logger.error(data, context)
   }
+
+  warn(data: DataType, context: string) {
+    this.logger.warn(data, context)
+  }
 }
