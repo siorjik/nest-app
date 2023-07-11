@@ -3,17 +3,21 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { InjectQueue } from '@nestjs/bull'
 import { Queue } from 'bull'
 
-import UserModule from './user/user.module'
 import { dataSourceOptions } from '../db/data-source'
-import { QueueModule } from './queue/queue.module'
+
+import UserModule from './user/user.module'
+import QueueModule from './queue/queue.module'
+import SocketModule from './socket/socket.module'
 import LoggerModule from './logger/logger.module'
 import TokenModule from './token/token.module'
 import MailerModule from './mailer/mailer.module'
 import AuthModule from './auth/auth.module'
+
 import LoggerMiddleware from './logger/logger.middleware'
 
 @Module({
   imports: [
+    SocketModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     UserModule,
     AuthModule,
@@ -32,6 +36,7 @@ export class AppModule {
   }
 
   async deleteInactiveUsers() {
+    //await this.userQueue.obliterate({ force: true })
     await this.userQueue.add('inactive-users-checking-job',
       { job: 'checking inactive users' },
       //{ repeat: { every: 2000, limit: 2 }, removeOnComplete: true }

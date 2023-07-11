@@ -1,19 +1,20 @@
-import { Processor, Process, InjectQueue, OnQueueCompleted, OnQueueFailed, OnQueueError } from '@nestjs/bull'
+import { Processor, Process, OnQueueCompleted, OnQueueFailed, OnQueueError } from '@nestjs/bull'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Job, Queue } from 'bull'
+import { Job } from 'bull'
 import { Repository } from 'typeorm'
 
-import User from './user.entity'
+import User from '../user/user.entity'
 import LoggerService from '../logger/logger.service'
+import UserGateway from '../socket/user.gateway'
 
 @Processor('user')
 export class UserConsumer {
   private readonly context = 'UserConsumer'
 
   constructor(
-    @InjectQueue('user') private userQueue: Queue,
     @InjectRepository(User) private userRepository: Repository<User>,
     private readonly loggerService: LoggerService,
+    private readonly userGateway: UserGateway,
   ) { }
 
   async deleteInactiveUsers() {
@@ -28,13 +29,15 @@ export class UserConsumer {
       }
     })
 
+    this.userGateway.socket.emit('userListUpdating', { deletedUsersEmails: result })
+
     return result
   }
 
   @Process('inactive-users-checking-job')
   async process(job: Job) {
     const deletedInactiveUsers = await this.deleteInactiveUsers()
-    //await this.userQueue.obliterate({ force: true })
+
     job.data = { ...job.data as object, deletedInactiveUsers }
   }
 
