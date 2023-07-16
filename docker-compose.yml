@@ -1,0 +1,47 @@
+version: '3'
+
+volumes:
+  db-data:
+
+networks:
+  server-app:
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: api
+    env_file:
+      - .env.development
+    environment:
+      REDIS_HOST: 'redis'
+      DB_HOST: 'postgres'
+    ports:
+      - '8080:8080'
+    restart: always
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - server-app
+      
+  redis:
+    image: redis
+    ports: 
+      - '6379:6379'
+    restart: always
+    networks:
+      - server-app
+
+  postgres:
+    image: postgres
+    ports: 
+      - '5432:5432'
+    restart: always
+    env_file:
+      - .env.development
+    volumes: 
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - server-app

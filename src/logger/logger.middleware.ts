@@ -10,9 +10,10 @@ export default class LoggerMiddleware implements NestMiddleware {
 
     response.on('finish', () => {
       const { statusCode } = response
+      const logString = `${method} ${originalUrl} - ${statusCode}`
 
-      if (statusCode !== 400 && statusCode !== 401) this.logger.log(`${method} ${originalUrl} - ${statusCode}`)
-      else this.logger.error(`${method} ${originalUrl} - ${statusCode}`)
+      if (String(statusCode)[0] !== '4' && String(statusCode)[0] !== '5') this.logger.log(logString)
+      else this.logger.error(logString)
     })
 
     next()
