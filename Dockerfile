@@ -13,4 +13,5 @@ EXPOSE 8080
 
 RUN yarn build
 
-CMD [ "node", "dist/src/main.js" ]
+CMD [ "yarn", "start:prod" ]
+# CMD [ "yarn", "start:dev" ]

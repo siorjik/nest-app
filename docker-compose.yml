@@ -4,44 +4,47 @@ volumes:
   db-data:
 
 networks:
-  server-app:
+  next-nest-app:
+    name: next-nest-app
+    driver: bridge
 
 services:
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  api:
+    build: ./
     image: api
+    container_name: api
     env_file:
-      - .env.development
-    environment:
-      REDIS_HOST: 'redis'
-      DB_HOST: 'postgres'
+      - .env.production
     ports:
       - '8080:8080'
-    restart: always
+    # restart: always
     depends_on:
       - redis
       - postgres
     networks:
-      - server-app
-      
+      - next-nest-app
+    # volumes:
+    #   - ./:/app
+    #   - /app/node_modules
+
   redis:
     image: redis
-    ports: 
+    container_name: redis
+    ports:
       - '6379:6379'
-    restart: always
+    # restart: always
     networks:
-      - server-app
+      - next-nest-app
 
   postgres:
     image: postgres
-    ports: 
+    container_name: postgres
+    ports:
       - '5432:5432'
-    restart: always
+    # restart: always
     env_file:
-      - .env.development
-    volumes: 
+      - .env.production
+    volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - server-app
+      - next-nest-app
