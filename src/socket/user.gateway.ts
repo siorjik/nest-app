@@ -7,7 +7,7 @@ import { Server } from 'http'
 
 import LoggerService from '../logger/logger.service'
 
-@WebSocketGateway({ cors: { origin: process.env.CLIENT_URL, credentials: true } })
+@WebSocketGateway({ cors: { origin: process.env.CLIENT_HOST, credentials: true } })
 export default class UserGateway implements OnGatewayInit {
   @WebSocketServer() socket: Server
   private context = 'UserGateway'

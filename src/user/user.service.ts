@@ -48,7 +48,7 @@ export default class UserService {
         subject: 'Registration finishing.',
         html: `
           <p>Hello ${data.firstName}, you need to create password for your account.</p>
-          <a href='${process.env.CLIENT_URL}/password-creating?accessToken=${tokens.accessToken}'>
+          <a href='${process.env.CLIENT_SITE_HOST}/password-creating?accessToken=${tokens.accessToken}'>
             Link for password creating
           </a>
           <p>This link will be expired in 30 minutes.</p>
@@ -83,7 +83,7 @@ export default class UserService {
           subject: 'Password recovery.',
           html: `
             <p>Hello ${user.firstName}, change password for your account.</p>
-            <a href='${process.env.CLIENT_URL}/password-recovery?accessToken=${tokens.accessToken}&email=${email}'>
+            <a href='${process.env.CLIENT_SITE_HOST}/password-recovery?accessToken=${tokens.accessToken}&email=${email}'>
               Link for password recovery
             </a>
             <p>This link will be expired in 30 minutes.</p>
