@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { DeleteResult, UpdateResult } from 'typeorm'
 
@@ -51,9 +51,22 @@ export default class UserController {
   }
 
   @ApiTags('API')
+  @ApiResponse({ status: 201, type: 'success' })
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/update-password')
+  async updatePassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: { currentPass: string, newPass: string }
+  ): Promise<User> {
+    await this.userService.updatePassword(data.currentPass, data.newPass, id)
+
+    return await this.userService.getById(id)
+  }
+
+  @ApiTags('API')
   @ApiResponse({ status: 200, type: ReturnUserDto })
   @UseGuards(JwtAuthGuard)
-  @Put(':id/update')
+  @Patch(':id/update')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto): Promise<User> {
     await this.userService.update(id, data)
 

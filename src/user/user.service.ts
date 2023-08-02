@@ -97,6 +97,19 @@ export default class UserService {
     } else if (email && password && token) return this.createPassword(password, token)
   }
 
+  async updatePassword(currentPass: string, newPass: string, id: number): Promise<UpdateResult> {
+    try {
+      const user = await this.userRepository.findOneBy({ id })
+      
+      const isValidPass = await bcrypt.compare(currentPass, user.password)
+
+      if (isValidPass) return await this.userRepository.update({ id }, { password: await bcrypt.hash(newPass, 10) })
+      else throw new Error()
+    } catch (error) {
+      throw new BadRequestException('Invalid credentials...')
+    }
+  }
+
   async update(id: number, data: UpdateUserDto): Promise<UpdateResult> {
     const user = await this.userRepository.findOneBy({ email: data.email })
 
