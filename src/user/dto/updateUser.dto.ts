@@ -5,18 +5,31 @@ export default class UpdateUserDto {
   @ApiProperty()
   @IsString()
   @MinLength(1)
-  firstName: string
+  @IsOptional()
+  firstName?: string
 
   @ApiProperty()
   @IsString()
   @MinLength(1)
-  lastName: string
+  @IsOptional()
+  lastName?: string
 
   @ApiProperty()
   @IsEmail()
-  email: string
+  @IsOptional()
+  email?: string
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  isTwoFa?: boolean
 
   @ApiProperty()
   @IsOptional()
-  isActive?: boolean
+  twoFaHash: string | null
 }

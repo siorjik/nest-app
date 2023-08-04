@@ -23,4 +23,12 @@ export default class ReturnUserDto {
   @ApiProperty()
   @IsBoolean()
   isActive: boolean
+
+  @ApiProperty()
+  @IsBoolean()
+  isTwoFa: boolean
+
+  @ApiProperty()
+  @IsString()
+  twoFaHash: string | null
 }

@@ -9,6 +9,7 @@ import User1680616333198 from './migrations/1680616333198-User'
 import User1680809088340 from './migrations/1680809088340-User'
 import User1688797357090 from './migrations/1688797357090-User-dates_columns_adding'
 import User1688798579812 from './migrations/1688798579812-User-dates_timestamp_adding'
+import User1691069914308 from './migrations/1691069914308-User-added_twoFaHash_isTwoFa'
 
 import Token1682526646816 from './migrations/1682526646816-refreshToken_table_creating'
 import Token1682605280041 from './migrations/1682605280041-refreshToken_cascade_deleting_added'
@@ -33,8 +34,9 @@ export const dataSourceOptions: DataSourceOptions = {
     User1688797357090,
     User1688798579812,
     Token1688799161199,
+    User1691069914308,
   ],
-  logging: true,
+  //logging: true,
   migrationsRun: true,
   //synchronize: true,
 }

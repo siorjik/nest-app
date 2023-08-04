@@ -111,9 +111,11 @@ export default class UserService {
   }
 
   async update(id: number, data: UpdateUserDto): Promise<UpdateResult> {
-    const user = await this.userRepository.findOneBy({ email: data.email })
-
-    if (user && user.id !== id) throw new BadRequestException('This email already exists!')
+    if (data.email) {
+      const user = await this.userRepository.findOneBy({ email: data.email })
+  
+      if (user && user.id !== id) throw new BadRequestException('This email already exists!')
+    }
 
     return await this.userRepository.update({ id }, data)
   }
