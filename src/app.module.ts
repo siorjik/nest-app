@@ -4,6 +4,7 @@ import { InjectQueue } from '@nestjs/bull'
 import { Queue } from 'bull'
 
 import { dataSourceOptions } from '../db/data-source'
+import TwoFaAuthModule from './two-fa-auth/two-fa-auth.module'
 
 import UserModule from './user/user.module'
 import QueueModule from './queue/queue.module'
@@ -25,6 +26,7 @@ import LoggerMiddleware from './logger/logger.middleware'
     MailerModule,
     LoggerModule,
     QueueModule,
+    TwoFaAuthModule,
   ],
   controllers: [],
   providers: []

@@ -20,6 +20,12 @@ export default class User {
   @Column({ default: null })
   password: string
 
+  @Column({ default: false })
+  isTwoFa: boolean
+
+  @Column({ default: null })
+  twoFaHash: string
+
   @Column({ type: 'timestamptz', default: () => "NOW()" })
   createdAt: Date
 

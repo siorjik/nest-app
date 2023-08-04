@@ -1,4 +1,4 @@
-import { Post, Body, Controller, HttpCode, HttpStatus, Res, Get, Req, UseGuards } from '@nestjs/common'
+import { Post, Body, Controller, HttpCode, HttpStatus, Res, Get, Req, UseGuards, Param, ParseIntPipe } from '@nestjs/common'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Request, Response } from 'express'
 
@@ -58,5 +58,23 @@ export default class AuthController {
         res.status(401).send(error.response)
       }
     } else res.status(401).send(getCustomErr({ message: 'Refresh token does not exist...' }))
+  }
+
+  @ApiTags('API')
+  @ApiResponse({ status: 200 })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @Get(':userId/two-fa')
+  async createTwoFa(@Param('userId', ParseIntPipe) userId: number): Promise <{ qrCodeUrl: string }> {
+    return await this.authService.createTwoFa(userId)
+  }
+
+  @ApiTags('API')
+  @ApiResponse({ status: 200 })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @Post('confirm-two-fa')
+  async confirmTwoFa(@Body() data: { code: string, id: string }): Promise <User> {
+    return await this.authService.confirmTwoFa(+data.id, data.code)
   }
 }
