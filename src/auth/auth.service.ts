@@ -2,12 +2,12 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import * as bcrypt from 'bcrypt'
+import * as speakeasy from 'speakeasy'
 
 import User from '../user/user.entity'
 import LoginDto from './dto/login.dto'
 import TokenService from '../token/token.service'
 import LoggerService from '../logger/logger.service'
-import TwoFaAuthService from '../two-fa-auth/two-fa-auth.service'
 
 @Injectable()
 export default class AuthService {
@@ -16,8 +16,7 @@ export default class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly tokenService: TokenService,
-    private readonly loggerService: LoggerService,
-    private readonly twoFaAuthService: TwoFaAuthService
+    private readonly loggerService: LoggerService
   ) { }
 
   async login(data: LoginDto): Promise<User | boolean> {
@@ -57,8 +56,8 @@ export default class AuthService {
 
   async createTwoFa(id: number) {
     try {
-      const twoFa = this.twoFaAuthService.generate()
-      const qrCodeUrl = this.twoFaAuthService.generateQRUrl(twoFa.base32)
+      const twoFa = speakeasy.generateSecret()
+      const qrCodeUrl = speakeasy.otpauthURL({ secret: twoFa.base32, label: 'Label', issuer: 'Issuer', encoding: 'base32' })
 
       await this.userRepository.update({ id }, { twoFaHash: twoFa.base32 })
 
@@ -68,11 +67,11 @@ export default class AuthService {
     }
   }
 
-  async confirmTwoFa(id: number, code: string) {
+  async confirmTwoFa(id: number, token: string) {
     try {
       const user = await this.userRepository.findOneBy({ id })
   
-      const isVerified = this.twoFaAuthService.verify(code, user.twoFaHash)
+      const isVerified = speakeasy.totp.verify({ secret: user.twoFaHash, encoding: 'base32', token })
   
       if (isVerified) await this.userRepository.update({ id }, { isTwoFa: true })
       else throw new Error()
