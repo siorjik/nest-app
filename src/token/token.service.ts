@@ -15,8 +15,10 @@ export default class TokenService {
   ) { }
 
   async generateTokens(user: { [k: string]: string | number }, isInsert = true) {
-    const accessToken = this.jwtService.sign({ user }, { secret: process.env.ACCESS_SECRET, expiresIn: process.env.ACCESS_EXPIRE })
-    const refreshToken = this.jwtService.sign({ user }, { secret: process.env.REFRESH_SECRET, expiresIn: process.env.REFRESH_EXPIRE })
+    const accessToken =
+      this.jwtService.sign({ user }, { secret: process.env.ACCESS_SECRET, expiresIn: process.env.ACCESS_EXPIRE })
+    const refreshToken =
+      this.jwtService.sign({ user }, { secret: process.env.REFRESH_SECRET, expiresIn: process.env.REFRESH_EXPIRE })
 
     if (isInsert) {
       const newToken = this.tokenRepository.create({ token: refreshToken, userId: user.id as number })
