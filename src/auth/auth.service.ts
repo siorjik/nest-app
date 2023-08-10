@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import * as bcrypt from 'bcrypt'
@@ -19,13 +19,23 @@ export default class AuthService {
     private readonly loggerService: LoggerService
   ) { }
 
+  async checkTwoFa(email: string): Promise<{ isTwoFa: boolean }> {
+    const user = await this.userRepository.findOneBy({ email })
+
+    if (!user) throw new UnauthorizedException('Invalid credentials')
+
+    return { isTwoFa: user.isTwoFa }
+  }
+
   async login(data: LoginDto): Promise<User | boolean> {
     const user = await this.userRepository.findOneBy({ email: data.email })
 
     if (user && user.password) {
       const isValidPass = await bcrypt.compare(data.password, user.password)
+      const isValidTwoFa = data.code ?
+        speakeasy.totp.verify({ secret: user.twoFaHash, encoding: 'base32', token: data.code }) : true
 
-      if (isValidPass) {
+      if (isValidPass && isValidTwoFa) {
         const tokens = await this.tokenService.generateTokens({ id: user.id, email: user.email })
 
         delete user.password
@@ -35,7 +45,7 @@ export default class AuthService {
         return { ...user, ...tokens }
       }
       else {
-        this.loggerService.error('invalid password', this.context)
+        this.loggerService.error('invalid password or code', this.context)
 
         return false
       }
