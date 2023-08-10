@@ -8,6 +8,8 @@ import ReturnUserDto from '../user/dto/returnUser.dto'
 import User from 'src/user/user.entity'
 import { JwtAuthGuard } from './auth.guard'
 import getCustomErr from 'src/helpers/getCustomErr'
+import ReturnCheckTwoFaDto from './dto/returnChectTwoFa.dto'
+import CheckTwoFaDto from './dto/checkTwoFa.dto'
 
 @Controller('auth')
 export default class AuthController {
@@ -22,6 +24,14 @@ export default class AuthController {
 
     if (result) res.send(result)
     else res.status(401).send('Invalid credentials...')
+  }
+
+  @ApiTags('API')
+  @ApiResponse({ status: 200, type: ReturnCheckTwoFaDto })
+  @HttpCode(HttpStatus.OK)
+  @Post('check-two-fa')
+  async checkTwoFa(@Body() data: CheckTwoFaDto): Promise<{ isTwoFa: boolean }> {
+    return this.authService.checkTwoFa(data.email)
   }
 
   @ApiTags('API')
