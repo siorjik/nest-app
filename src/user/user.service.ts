@@ -36,8 +36,10 @@ export default class UserService {
   async create(data: CreateUserDto): Promise<User> {
     const user = await this.userRepository.findOneBy({ email: data.email })
 
-    if (user) throw new BadRequestException('This email already exists!')
+    if (user && user.password) throw new BadRequestException('This email already exists!')
     else {
+      if (user) await this.userRepository.delete({ id: user.id })
+
       const newUser = this.userRepository.create(data)
       const createdUser = await this.userRepository.save(newUser)
       
