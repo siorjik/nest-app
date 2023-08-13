@@ -31,4 +31,20 @@ export default class ReturnUserDto {
   @ApiProperty()
   @IsString()
   twoFaHash: string | null
+
+  @ApiProperty()
+  @IsString()
+  createdAt: string
+
+  @ApiProperty()
+  @IsString()
+  updatedAt: string
+
+  @ApiProperty()
+  @IsString()
+  refreshToken: string
+
+  @ApiProperty()
+  @IsString()
+  accessToken: string
 }

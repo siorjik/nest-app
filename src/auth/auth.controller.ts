@@ -1,5 +1,5 @@
 import { Post, Body, Controller, HttpCode, HttpStatus, Res, Get, Req, UseGuards, Param, ParseIntPipe } from '@nestjs/common'
-import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiHeader, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger'
 import { Request, Response } from 'express'
 
 import AuthService from './auth.service'
@@ -10,32 +10,39 @@ import { JwtAuthGuard } from './auth.guard'
 import getCustomErr from 'src/helpers/getCustomErr'
 import ReturnCheckTwoFaDto from './dto/returnChectTwoFa.dto'
 import CheckTwoFaDto from './dto/checkTwoFa.dto'
+import UnauthorizedDto from './dto/unauthorized.dto'
+import ReturnRefreshDto from './dto/returnRefresh.dto'
 
 @Controller('auth')
 export default class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  @ApiTags('API')
+  @ApiTags('Auth')
   @ApiResponse({ status: 200, type: ReturnUserDto })
   @HttpCode(HttpStatus.OK)
+  @ApiUnauthorizedResponse({ status: 401, type: 'Invalid credentials...' })
   @Post('login')
   async login(@Body() data: LoginDto, @Res() res: Response): Promise<void> {
-    const result = await this.authService.login(data) as User & { tokens: { refreshToken: string, accessToken: string } }
+    const result = await this.authService.login(data) as User & { refreshToken: string, accessToken: string }
 
     if (result) res.send(result)
     else res.status(401).send('Invalid credentials...')
   }
 
-  @ApiTags('API')
+  @ApiTags('Auth')
   @ApiResponse({ status: 200, type: ReturnCheckTwoFaDto })
   @HttpCode(HttpStatus.OK)
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
   @Post('check-two-fa')
   async checkTwoFa(@Body() data: CheckTwoFaDto): Promise<{ isTwoFa: boolean }> {
     return this.authService.checkTwoFa(data.email)
   }
 
-  @ApiTags('API')
-  @ApiResponse({ status: 200 })
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: ReturnRefreshDto })
+  @HttpCode(HttpStatus.OK)
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @ApiQuery({ name: 'refresh', type: 'qrrwfeTgt45YH...', description: 'refresh token' })
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response): Promise<void> {
     const token = req.query.refresh
@@ -51,9 +58,13 @@ export default class AuthController {
     } else res.status(401).send(getCustomErr({ message: 'Session does not exist or expired...' }))
   }
 
-  @ApiTags('API')
-  @ApiResponse({ status: 200 })
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: 'ok' })
   @HttpCode(HttpStatus.OK)
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @ApiQuery({ name: 'refresh', type: 'qrrwfeTgt45YH...', description: 'refresh token' })
+  @ApiBearerAuth('Authorization')
+  @ApiHeader({ name: 'Authorization' })
   @UseGuards(JwtAuthGuard)
   @Get('logout')
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
@@ -70,7 +81,7 @@ export default class AuthController {
     } else res.status(401).send(getCustomErr({ message: 'Refresh token does not exist...' }))
   }
 
-  @ApiTags('API')
+  @ApiTags('Auth')
   @ApiResponse({ status: 200 })
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -79,7 +90,7 @@ export default class AuthController {
     return await this.authService.createTwoFa(userId)
   }
 
-  @ApiTags('API')
+  @ApiTags('Auth')
   @ApiResponse({ status: 200 })
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
