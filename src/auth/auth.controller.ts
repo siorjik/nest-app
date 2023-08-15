@@ -1,5 +1,5 @@
 import { Post, Body, Controller, HttpCode, HttpStatus, Res, Get, Req, UseGuards, Param, ParseIntPipe } from '@nestjs/common'
-import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { ApiBadRequestResponse, ApiBearerAuth, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger'
 import { Request, Response } from 'express'
 
 import AuthService from './auth.service'
@@ -7,35 +7,45 @@ import LoginDto from './dto/login.dto'
 import ReturnUserDto from '../user/dto/returnUser.dto'
 import User from 'src/user/user.entity'
 import { JwtAuthGuard } from './auth.guard'
-import getCustomErr from 'src/helpers/getCustomErr'
+import getCustomErr from '../helpers/getCustomErr'
 import ReturnCheckTwoFaDto from './dto/returnChectTwoFa.dto'
 import CheckTwoFaDto from './dto/checkTwoFa.dto'
+import UnauthorizedDto from '../dto/unauthorized.dto'
+import ReturnRefreshDto from './dto/returnRefresh.dto'
+import ReturnTwoFaDto from './dto/returnTwoFa.dto'
+import BadRequestDto from '../dto/badRequest.dto'
+import ConfirmTwoFa from './dto/confirmTwoFa.dto'
 
 @Controller('auth')
 export default class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  @ApiTags('API')
+  @ApiTags('Auth')
   @ApiResponse({ status: 200, type: ReturnUserDto })
+  @ApiUnauthorizedResponse({ status: 401, type: 'Invalid credentials...' })
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() data: LoginDto, @Res() res: Response): Promise<void> {
-    const result = await this.authService.login(data) as User & { tokens: { refreshToken: string, accessToken: string } }
+    const result = await this.authService.login(data) as User & { refreshToken: string, accessToken: string }
 
     if (result) res.send(result)
     else res.status(401).send('Invalid credentials...')
   }
 
-  @ApiTags('API')
+  @ApiTags('Auth')
   @ApiResponse({ status: 200, type: ReturnCheckTwoFaDto })
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
   @HttpCode(HttpStatus.OK)
   @Post('check-two-fa')
   async checkTwoFa(@Body() data: CheckTwoFaDto): Promise<{ isTwoFa: boolean }> {
     return this.authService.checkTwoFa(data.email)
   }
 
-  @ApiTags('API')
-  @ApiResponse({ status: 200 })
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: ReturnRefreshDto })
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @ApiQuery({ name: 'refresh', type: 'qrrwfeTgt45YH...gdeg', description: 'refresh token' })
+  @HttpCode(HttpStatus.OK)
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response): Promise<void> {
     const token = req.query.refresh
@@ -51,10 +61,13 @@ export default class AuthController {
     } else res.status(401).send(getCustomErr({ message: 'Session does not exist or expired...' }))
   }
 
-  @ApiTags('API')
-  @ApiResponse({ status: 200 })
-  @HttpCode(HttpStatus.OK)
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: 'ok' })
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @ApiQuery({ name: 'refresh', type: 'qrrwfeTgt45YH...fdfh', description: 'refresh token' })
+  @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Get('logout')
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
     const token = req.query.refresh
@@ -70,21 +83,27 @@ export default class AuthController {
     } else res.status(401).send(getCustomErr({ message: 'Refresh token does not exist...' }))
   }
 
-  @ApiTags('API')
-  @ApiResponse({ status: 200 })
-  @HttpCode(HttpStatus.OK)
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: ReturnTwoFaDto })
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @ApiBadRequestResponse({ status: 400, type: BadRequestDto })
+  @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Get(':userId/two-fa')
   async createTwoFa(@Param('userId', ParseIntPipe) userId: number): Promise <{ qrCodeUrl: string }> {
     return await this.authService.createTwoFa(userId)
   }
 
-  @ApiTags('API')
-  @ApiResponse({ status: 200 })
-  @HttpCode(HttpStatus.OK)
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: ReturnUserDto })
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @ApiBadRequestResponse({ status: 400, type: BadRequestDto })
+  @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('confirm-two-fa')
-  async confirmTwoFa(@Body() data: { code: string, id: string }): Promise <User> {
+  async confirmTwoFa(@Body() data: ConfirmTwoFa): Promise <User> {
     return await this.authService.confirmTwoFa(+data.id, data.code)
   }
 }

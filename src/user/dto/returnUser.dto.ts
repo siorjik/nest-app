@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsEmail, MinLength, IsBoolean, IsNumber } from 'class-validator'
+import { IsString, IsEmail, MinLength, IsBoolean, IsNumber, IsOptional } from 'class-validator'
 
 export default class ReturnUserDto {
   @ApiProperty()
@@ -31,4 +31,22 @@ export default class ReturnUserDto {
   @ApiProperty()
   @IsString()
   twoFaHash: string | null
+
+  @ApiProperty()
+  @IsString()
+  createdAt: string
+
+  @ApiProperty()
+  @IsString()
+  updatedAt: string
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  refreshToken?: string
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  accessToken?: string
 }

@@ -13,7 +13,7 @@ import { JwtAuthGuard } from '../auth/auth.guard'
 export default class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 200, type: [ReturnUserDto] })
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -21,7 +21,7 @@ export default class UserController {
     return await this.userService.getAll()
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 200, type: ReturnUserDto })
   @UseGuards(JwtAuthGuard)
   @Get(':id')
@@ -29,28 +29,28 @@ export default class UserController {
     return await this.userService.getById(id)
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 201, type: ReturnUserDto })
   @Post('create')
   async create(@Body() data: CreateUserDto): Promise<User> {
     return await this.userService.create(data)
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 201, type: 'success' })
   @Post('create-password')
   async createPassword(@Body() data: { password: string, token: string }): Promise<UpdateResult> {
     return await this.userService.createPassword(data.password, data.token)
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 201, type: 'success' })
   @Post('recover-password')
   async recoverPassword(@Body() data: { email: string, password?: string, token?: string }): Promise<UpdateResult | string> {
     return await this.userService.recoverPassword(data.email, data.password, data.token)
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 201, type: 'success' })
   @UseGuards(JwtAuthGuard)
   @Patch(':id/update-password')
@@ -63,7 +63,7 @@ export default class UserController {
     return await this.userService.getById(id)
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @ApiResponse({ status: 200, type: ReturnUserDto })
   @UseGuards(JwtAuthGuard)
   @Patch(':id/update')
@@ -73,7 +73,7 @@ export default class UserController {
     return await this.userService.getById(id)
   }
 
-  @ApiTags('API')
+  @ApiTags('User')
   @UseGuards(JwtAuthGuard)
   @Delete(':id/delete')
   async remove (@Param('id', ParseIntPipe) id: number): Promise<DeleteResult> {

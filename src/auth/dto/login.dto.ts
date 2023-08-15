@@ -10,7 +10,7 @@ export default class LoginDto {
   @IsEmail()
   email: string
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
   code?: string

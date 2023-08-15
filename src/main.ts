@@ -17,10 +17,10 @@ async function bootstrap() {
     .setTitle('Nest testing')
     .setDescription('Some description')
     .setVersion('1.0')
-    .addTag('API')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
     .build()
   const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api', app, document)
+  SwaggerModule.setup('docs', app, document)
 
   await app.listen(8080)
 }
