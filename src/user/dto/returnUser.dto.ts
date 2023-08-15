@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsEmail, MinLength, IsBoolean, IsNumber } from 'class-validator'
+import { IsString, IsEmail, MinLength, IsBoolean, IsNumber, IsOptional } from 'class-validator'
 
 export default class ReturnUserDto {
   @ApiProperty()
@@ -40,11 +40,13 @@ export default class ReturnUserDto {
   @IsString()
   updatedAt: string
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  refreshToken: string
+  @IsOptional()
+  refreshToken?: string
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  accessToken: string
+  @IsOptional()
+  accessToken?: string
 }
