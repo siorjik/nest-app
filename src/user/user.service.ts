@@ -42,7 +42,7 @@ export default class UserService {
 
       const newUser = this.userRepository.create(data)
       const createdUser = await this.userRepository.save(newUser)
-      
+
       const tokens = await this.tokenService.generateTokens({ id: createdUser.id, email: createdUser.email }, false)
 
       await this.mailerService.sendMail({
@@ -73,36 +73,34 @@ export default class UserService {
     }
   }
 
-  async recoverPassword(email: string, password?: string, token?: string) {
-    if (email && !password && !token) {
-      try {
-        const user = await this.userRepository.findOneBy({ email })
+  async recoverPassword(email: string) {
+    try {
+      const user = await this.userRepository.findOneBy({ email })
 
-        const tokens = await this.tokenService.generateTokens({ id: user.id, email }, false)
+      const tokens = await this.tokenService.generateTokens({ id: user.id, email }, false)
 
-        await this.mailerService.sendMail({
-          to: email,
-          subject: 'Password recovery.',
-          html: `
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Password recovery.',
+        html: `
             <p>Hello ${user.firstName}, change password for your account.</p>
-            <a href='${process.env.CLIENT_SITE_HOST}/password-recovery?accessToken=${tokens.accessToken}&email=${email}'>
+            <a href='${process.env.CLIENT_SITE_HOST}/password-recovery?token=${tokens.accessToken}'>
               Link for password recovery
             </a>
             <p>This link will be expired in 30 minutes.</p>
           `
-        })
+      })
 
-        return 'success'
-      } catch (error) {
-        throw new BadRequestException('Sorry, account with this email does not exist...')
-      }
-    } else if (email && password && token) return this.createPassword(password, token)
+      return 'success'
+    } catch (error) {
+      throw new BadRequestException('Sorry, account with this email does not exist...')
+    }
   }
 
   async updatePassword(currentPass: string, newPass: string, id: number): Promise<UpdateResult> {
     try {
       const user = await this.userRepository.findOneBy({ id })
-      
+
       const isValidPass = await bcrypt.compare(currentPass, user.password)
 
       if (isValidPass) return await this.userRepository.update({ id }, { password: await bcrypt.hash(newPass, 10) })
@@ -115,7 +113,7 @@ export default class UserService {
   async update(id: number, data: UpdateUserDto): Promise<UpdateResult> {
     if (data.email) {
       const user = await this.userRepository.findOneBy({ email: data.email })
-  
+
       if (user && user.id !== id) throw new BadRequestException('This email already exists!')
     }
 

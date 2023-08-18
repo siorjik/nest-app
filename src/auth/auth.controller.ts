@@ -15,6 +15,8 @@ import ReturnRefreshDto from './dto/returnRefresh.dto'
 import ReturnTwoFaDto from './dto/returnTwoFa.dto'
 import BadRequestDto from '../dto/badRequest.dto'
 import ConfirmTwoFa from './dto/confirmTwoFa.dto'
+import ResetTwoFaEmailDto from './dto/resetTwoFaEmail.dto'
+import ResetTwoFaDto from './dto/resetTwoFa.dto'
 
 @Controller('auth')
 export default class AuthController {
@@ -91,7 +93,7 @@ export default class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get(':userId/two-fa')
-  async createTwoFa(@Param('userId', ParseIntPipe) userId: number): Promise <{ qrCodeUrl: string }> {
+  async createTwoFa(@Param('userId', ParseIntPipe) userId: number): Promise <ReturnTwoFaDto> {
     return await this.authService.createTwoFa(userId)
   }
 
@@ -105,5 +107,23 @@ export default class AuthController {
   @Post('confirm-two-fa')
   async confirmTwoFa(@Body() data: ConfirmTwoFa): Promise <User> {
     return await this.authService.confirmTwoFa(+data.id, data.code)
+  }
+
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: 'ok' })
+  @ApiUnauthorizedResponse({ status: 401, type: UnauthorizedDto })
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-two-fa/email')
+  async resetTwoFaEmail(@Body() data: ResetTwoFaEmailDto): Promise <string> {
+    return await this.authService.resetTwoFaEmail(data.email, data.password)
+  }
+
+  @ApiTags('Auth')
+  @ApiResponse({ status: 200, type: 'ok' })
+  @ApiBadRequestResponse({ status: 400, type: BadRequestDto })
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-two-fa')
+  async resetTwoFa(@Body() data: ResetTwoFaDto): Promise <string> {
+    return await this.authService.resetTwoFa(data.token)
   }
 }
