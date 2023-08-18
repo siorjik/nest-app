@@ -46,8 +46,8 @@ export default class UserController {
   @ApiTags('User')
   @ApiResponse({ status: 201, type: 'success' })
   @Post('recover-password')
-  async recoverPassword(@Body() data: { email: string, password?: string, token?: string }): Promise<UpdateResult | string> {
-    return await this.userService.recoverPassword(data.email, data.password, data.token)
+  async recoverPassword(@Body() data: { email: string }): Promise<UpdateResult | string> {
+    return await this.userService.recoverPassword(data.email)
   }
 
   @ApiTags('User')

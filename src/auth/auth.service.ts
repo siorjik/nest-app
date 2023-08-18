@@ -8,6 +8,7 @@ import User from '../user/user.entity'
 import LoginDto from './dto/login.dto'
 import TokenService from '../token/token.service'
 import LoggerService from '../logger/logger.service'
+import MailerService from '../mailer/mailer.service'
 
 @Injectable()
 export default class AuthService {
@@ -16,7 +17,8 @@ export default class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly tokenService: TokenService,
-    private readonly loggerService: LoggerService
+    private readonly loggerService: LoggerService,
+    private readonly mailerService: MailerService
   ) { }
 
   async checkTwoFa(email: string): Promise<{ isTwoFa: boolean }> {
@@ -66,8 +68,11 @@ export default class AuthService {
 
   async createTwoFa(id: number) {
     try {
+      const user = await this.userRepository.findOneBy({ id })
+
       const twoFa = speakeasy.generateSecret()
-      const qrCodeUrl = speakeasy.otpauthURL({ secret: twoFa.base32, label: 'Label', issuer: 'Issuer', encoding: 'base32' })
+      const qrCodeUrl =
+        speakeasy.otpauthURL({ secret: twoFa.base32, label: user.email, issuer: user.firstName, encoding: 'base32' })
 
       await this.userRepository.update({ id }, { twoFaHash: twoFa.base32 })
 
@@ -80,16 +85,58 @@ export default class AuthService {
   async confirmTwoFa(id: number, token: string) {
     try {
       const user = await this.userRepository.findOneBy({ id })
-  
+
       const isVerified = speakeasy.totp.verify({ secret: user.twoFaHash, encoding: 'base32', token })
-  
+
       if (isVerified) await this.userRepository.update({ id }, { isTwoFa: true })
       else throw new Error()
-      
+
       return await this.userRepository.findOneBy({ id })
     } catch (error) {
       throw new BadRequestException('Invalid code...')
     }
 
+  }
+
+  async resetTwoFaEmail(email: string, password: string) {
+    try {
+      const user = await this.userRepository.findOneBy({ email })
+
+      if (user) {
+        const isValidPass = await bcrypt.compare(password, user.password)
+
+        if (isValidPass) {
+          const tokens = await this.tokenService.generateTokens({ id: user.id, email }, false)
+
+          await this.mailerService.sendMail({
+            to: email,
+            subject: 'Reset two factor verification.',
+            html: `
+                <p>Hello ${user.firstName}, use the link below for code reset.</p>
+                <a href='${process.env.CLIENT_SITE_HOST}/login?resetTwoFa=true&token=${tokens.accessToken}'>
+                  Link for two factor verification reset
+                </a>
+                <p>This link will be expired in 30 minutes.</p>
+              `
+          })
+
+          return 'mail was sent'
+        } else throw new Error()
+      } else throw new Error()
+    } catch (error) {
+      throw new UnauthorizedException('Invalid credentials...')
+    }
+  }
+
+  async resetTwoFa(token: string) {
+    try {
+      const verified = this.tokenService.verifyToken(token, false)
+
+      await this.userRepository.update({ id: verified.user.id }, { isTwoFa: false, twoFaHash: null })
+
+      return 'two factor verification was disabled'
+    } catch (error) {
+      throw new BadRequestException('Sorry, this link was expired...')
+    }
   }
 }
