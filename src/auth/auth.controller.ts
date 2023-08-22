@@ -78,7 +78,7 @@ export default class AuthController {
       try {
         await this.authService.logout(token as string)
 
-        res.send('ok')
+        res.send({ isLogOuted: true })
       } catch (error) {
         res.status(401).send(error.response)
       }
