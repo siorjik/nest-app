@@ -63,7 +63,7 @@ export default class TokenService {
         throw new UnauthorizedException('Token expired')
       }
       
-      throw new Error('Unexpected error with refresh token')
+      throw new UnauthorizedException('Unexpected error with refresh token')
     }
   }
   

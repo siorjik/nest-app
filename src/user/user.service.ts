@@ -77,23 +77,27 @@ export default class UserService {
     try {
       const user = await this.userRepository.findOneBy({ email })
 
-      const tokens = await this.tokenService.generateTokens({ id: user.id, email }, false)
+      if (!user) throw new BadRequestException('Sorry, account with this email does not exist...')
+      if (user && !user.isActive) throw new BadRequestException('Your user does not activated! You can not change the password!')
+      else {
+        const tokens = await this.tokenService.generateTokens({ id: user.id, email }, false)
 
-      await this.mailerService.sendMail({
-        to: email,
-        subject: 'Password recovery.',
-        html: `
-            <p>Hello ${user.firstName}, change password for your account.</p>
-            <a href='${process.env.CLIENT_SITE_HOST}/password-recovery?token=${tokens.accessToken}'>
-              Link for password recovery
-            </a>
-            <p>This link will be expired in 30 minutes.</p>
-          `
-      })
+        await this.mailerService.sendMail({
+          to: email,
+          subject: 'Password recovery.',
+          html: `
+          <p>Hello ${user.firstName}, change password for your account.</p>
+          <a href='${process.env.CLIENT_SITE_HOST}/password-recovery?token=${tokens.accessToken}'>
+            Link for password recovery
+          </a>
+          <p>This link will be expired in 30 minutes.</p>
+        `
+        })
 
-      return 'success'
+        return 'success'
+      }
     } catch (error) {
-      throw new BadRequestException('Sorry, account with this email does not exist...')
+      throw error
     }
   }
 
